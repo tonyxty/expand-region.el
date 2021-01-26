@@ -6,9 +6,8 @@
   (when (not (eq last-command this-command))
     (setq expand-region-start-point (point))
     (setq expand-region-things expand-region-all-things))
-  (let ((region-active (use-region-p))
-	(region-start (region-beginning))
-	(region-end (region-end))
+  (let ((region-start (if (use-region-p) (region-beginning) (point)))
+	(region-end (if (use-region-p) (region-end) (point)))
 	thing)
     (goto-char expand-region-start-point)
     (catch 'loop-things
@@ -19,11 +18,10 @@
 	       (start (car bounds))
 	       (end (cdr bounds)))
   	  (when (and start end ; the thing must be non-nil
-	       ; and it must properly extend the current region, i.e.,
-		     (or (not region-active) ; either no region is active
-			 (and (<= start region-start) ; or it properly contains the region
-			      (>= end region-end)
-			      (or (< start region-start) (> end region-end)))))
+	       ; and it must properly extend the current region
+		     (<= start region-start) ; or it properly contains the region
+		     (>= end region-end)
+		     (or (< start region-start) (> end region-end)))
 	    (push-mark start t t)
 	    (goto-char end)
 	    (throw 'loop-things thing)))))
